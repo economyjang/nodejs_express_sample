@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "es2016",
+    "module": "ES2015",
+    "lib": ["ES2017"],
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "sourceMap": false,
+    "allowJs": true,
+    "outDir": "./dist",
+  },
+  "include": [
+    "src/**/*",
+    "tests/**/*"
+  ]
+}
