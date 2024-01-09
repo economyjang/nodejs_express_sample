@@ -1,16 +1,23 @@
 import express, {Express, NextFunction, Request, Response} from 'express';
-import postController from './src/controllers/post';
+import postController from './src/post/post.controller'
+import {AppDataSource} from "./src/data-source";
 
 const app: Express = express();
 const port = 5100;
+AppDataSource.initialize()
+    .then(() => {
+        // here you can start to work with your database
+        console.log('Database Connection Success!');
+    })
+    .catch((error) => console.log(error))
 
 app.use(express.json());
 
 app.use('/post', postController);
 
 app.use((req, res, next) => {
-    const error =  new Error(`${req.method} ${req.url} 라우터가 없습니다.`);
-    error.status = 404;
+    const error = new Error(`${req.method} ${req.url} 라우터가 없습니다.`);
+    // error.status = 404;
     next(error);
 });
 

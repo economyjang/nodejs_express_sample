@@ -8,9 +8,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createPost = void 0;
-const createPost = (body) => __awaiter(void 0, void 0, void 0, function* () {
-    return body.message;
-});
-exports.createPost = createPost;
+const express_1 = __importDefault(require("express"));
+const post_service_1 = require("./post.service");
+const controller = express_1.default.Router();
+controller.post('/create', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield (0, post_service_1.createPost)(req.body);
+    res.send(result);
+}));
+exports.default = controller;
+//# sourceMappingURL=post.controller.js.map
