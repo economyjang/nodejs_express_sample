@@ -4,6 +4,8 @@ import {AppDataSource} from "./src/data-source";
 
 const app: Express = express();
 const port = 5100;
+
+// 데이터소스
 AppDataSource.initialize()
     .then(() => {
         // here you can start to work with your database
@@ -13,6 +15,7 @@ AppDataSource.initialize()
 
 app.use(express.json());
 
+// 컨트롤러 라우팅
 app.use('/post', postController);
 
 app.use((req, res, next) => {

@@ -1,4 +1,4 @@
-import {Column, CreateDateColumn, Entity, PrimaryGeneratedColumn} from "typeorm";
+import {Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn} from "typeorm";
 
 @Entity()
 export class Post {
@@ -12,8 +12,17 @@ export class Post {
     content!: string
 
     @Column()
+    authorId!: string
+
+    @Column()
     author!: string
 
     @CreateDateColumn()
-    created_at!: Date
+    createdAt!: Date
+
+    @UpdateDateColumn()
+    updateAt!: Date
+
+    @DeleteDateColumn()
+    deleteAt!: Date
 }
