@@ -1,4 +1,5 @@
 import express, {Express, NextFunction, Request, Response} from 'express';
+import authController from './src/auth/auth.controller';
 import postController from './src/post/post.controller'
 import {AppDataSource} from "./src/data-source";
 
@@ -16,6 +17,7 @@ AppDataSource.initialize()
 app.use(express.json());
 
 // 컨트롤러 라우팅
+app.use('/auth', authController);
 app.use('/post', postController);
 
 app.use((req, res, next) => {
@@ -28,8 +30,8 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     console.error(err);
     res.status(err.status || 500);
     res.send('Error');
-})
+});
 
 app.listen(port, () => {
     console.log(`[Server] : Server is running at http://localhost:${port}`);
-})
+});
