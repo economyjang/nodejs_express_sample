@@ -1,14 +1,10 @@
 {
   "compilerOptions": {
-    "target": "es2016",
-    "module": "commonjs",
-    "lib": [
-      "ES2017"
-    ],
+    "target": "ES2015",
+    "module": "CommonJS",
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "sourceMap": false,
     "allowJs": true,
     "outDir": "./dist",
     "emitDecoratorMetadata": true,
@@ -16,11 +12,10 @@
   },
   "include": [
     "app.ts",
-    "./src/**/*.ts",
-    "./types/*.ts"
+    "src/**/*.ts",
   ],
   "exclude": [
-    "./node_modules"
+    "node_modules"
   ]
 }
 

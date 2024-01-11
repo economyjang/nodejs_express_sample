@@ -6,13 +6,15 @@ import {AppDataSource} from "./src/data-source";
 const app: Express = express();
 const port = 5100;
 
+// TODO morgan 미들웨어 적용
+
 // 데이터소스
 AppDataSource.initialize()
     .then(() => {
         // here you can start to work with your database
         console.log('Database Connection Success!');
     })
-    .catch((error) => console.log(error))
+    .catch((error) => console.log(error));
 
 app.use(express.json());
 
