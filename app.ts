@@ -4,6 +4,7 @@ import postController from './src/post/post.controller'
 import {AppDataSource} from "./src/data-source";
 
 const app: Express = express();
+// TODO configuration 에 넣기
 const port = 5100;
 
 // TODO morgan 미들웨어 적용

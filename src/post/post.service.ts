@@ -1,4 +1,4 @@
-import {Post} from "./entity/Post";
+import {Post} from "./entity/Post.entity";
 import {AppDataSource} from "../data-source";
 
 export const createPost = async (body: any) => {
