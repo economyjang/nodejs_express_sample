@@ -8,11 +8,15 @@
     "allowJs": true,
     "outDir": "./dist",
     "emitDecoratorMetadata": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "typeRoots": [
+      "node_modules/@types",
+      "types"
+    ]
   },
   "include": [
     "app.ts",
-    "src/**/*.ts",
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules"
