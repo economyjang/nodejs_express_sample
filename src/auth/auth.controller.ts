@@ -1,26 +1,29 @@
 import express, {NextFunction, Request, Response, Router} from "express";
+import {signUp} from "./auth.service";
 
 const authController: Router = express.Router();
 
 // TODO 로그인
-authController.post('/login', (req: Request, res: Response, next: NextFunction) => {
+authController.post('/login', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // TODO 로그아웃
-authController.post('/logout', (req: Request, res: Response, next: NextFunction) => {
+authController.post('/logout', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // TODO 회원가입
-authController.post('/signup', (req: Request, res: Response, next: NextFunction) => {
-
+authController.post('/signup', async (req: Request, res: Response, next: NextFunction) => {
+    await signUp(req.body);
+    res.status(200)
+        .send('success');
 });
 
 // TODO JWT 토큰 재발급
-authController.post('/refresh-token', (req: Request, res: Response, next: NextFunction) => {
+authController.post('/refresh-token', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // TODO 비밀번호 재설정
-authController.post('/reset', (req: Request, res: Response, next: NextFunction) => {
+authController.post('/reset', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 export default authController;
