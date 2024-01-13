@@ -2,6 +2,7 @@ import express, {Express, NextFunction, Request, Response} from 'express';
 import authController from './src/auth/auth.controller';
 import postController from './src/post/post.controller'
 import {AppDataSource} from "./src/data-source";
+import {ICustomError} from "./types/ICustiomError.interface";
 
 const app: Express = express();
 // TODO configuration 에 넣기
@@ -23,16 +24,17 @@ app.use(express.json());
 app.use('/auth', authController);
 app.use('/post', postController);
 
-app.use((req, res, next) => {
-    const error = new Error(`${req.method} ${req.url} 라우터가 없습니다.`);
-    // error.status = 404;
+// 엔드포인트가 없을 때 에러
+app.use((req: Request, res: Response, next: NextFunction) => {
+    const error = new Error(`${req.method} ${req.url} 엔드포인트가 없습니다.`) as ICustomError;
+    error.status = 404;
     next(error);
 });
 
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+app.use((err: ICustomError, req: Request, res: Response, next: NextFunction) => {
     console.error(err);
     res.status(err.status || 500);
-    res.send('Error');
+    res.send({message: err.message});
 });
 
 app.listen(port, () => {
