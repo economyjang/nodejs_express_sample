@@ -33,10 +33,25 @@ export const signUp = async (body: any) => {
 
     const userRepository = AppDataSource.getRepository(User);
 
-    const validateResult = await validate(user);
-    if(validateResult.length > 0) {
-        console.log("Validation failed: ", validateResult);
-    } else {
-        await userRepository.save(user);
+    // 사용자가 입력한 데이터 형식 검증
+    const formValidation = await validate(user);
+    if (formValidation.length > 0) {
+        const emailIdValidation = formValidation.filter((value) => value.property === 'emailId');
+        if(emailIdValidation.length > 0) {
+            throw new Error('이메일 형식이 잘못되었습니다.');
+        }
+
+        const passwordValidation = formValidation.filter((value) => value.property === 'password');
+        if(passwordValidation.length > 0) {
+            throw new Error('비밀번호 형식이 잘못되었습니다.');
+        }
     }
+
+    // 이미 존재하는 Email Id 인지 검증
+    const existUserValidation = await userRepository.exists({where: {emailId: user.emailId}});
+    if (existUserValidation) {
+        throw new Error('이미 존재하는 사용자 입니다.');
+    }
+
+    await userRepository.save(user);
 }

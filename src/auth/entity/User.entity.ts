@@ -13,7 +13,7 @@ export class User {
 
     @Column()
     @IsNotEmpty()
-    @Length(1, 20)
+    @Length(5, 20)
     password!: string
 
     @Column()

@@ -13,9 +13,13 @@ authController.post('/logout', async (req: Request, res: Response, next: NextFun
 
 // TODO 회원가입
 authController.post('/signup', async (req: Request, res: Response, next: NextFunction) => {
-    await signUp(req.body);
-    res.status(200)
-        .send('success');
+    try  {
+        await signUp(req.body);
+        res.status(200)
+            .send('success');
+    } catch (error) {
+        next(error);
+    }
 });
 
 // TODO JWT 토큰 재발급
