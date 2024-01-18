@@ -2,15 +2,14 @@ import "reflect-metadata"
 import {DataSource} from "typeorm"
 import {Post} from "../post/entity/Post.entity";
 import {User} from "../auth/entity/User.entity";
+import configObj from "../../config"
 
-export const AppDataSource = new DataSource({
-    type: "mysql",
-    host: "localhost",
-    port: 3306,
-    username: "root",
-    password: "rsdroot@0705",
-    database: "nodejs_express",
+const env = process.env.NODE_ENV as 'test' || 'development';
+const config = configObj[env];
+
+Object.assign(config, {
     entities: [Post, User],
     synchronize: true,
     logging: true,
 });
+export const AppDataSource = new DataSource(config);

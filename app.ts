@@ -6,11 +6,12 @@ import {ICustomError} from "./types/ICustiomError.interface";
 
 const app: Express = express();
 // TODO configuration 에 넣기
+
 const port = 5100;
 
 // TODO morgan 미들웨어 적용
-
 // 데이터소스
+
 AppDataSource.initialize()
     .then(() => {
         // here you can start to work with your database
