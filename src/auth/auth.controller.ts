@@ -1,20 +1,31 @@
 import express, {NextFunction, Request, Response, Router} from "express";
-import {signUp} from "./auth.service";
+import {login, signUp} from "./auth.service";
+import {UserDto} from "./dto/User.dto";
 
 const authController: Router = express.Router();
 
-// TODO 로그인
 authController.post('/login', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        await login();
+        res.status(200)
+            .send('success');
+    } catch (error) {
+        next(error);
+    }
 });
 
 // TODO 로그아웃
 authController.post('/logout', async (req: Request, res: Response, next: NextFunction) => {
 });
 
-// TODO 회원가입
 authController.post('/signup', async (req: Request, res: Response, next: NextFunction) => {
-    try  {
-        await signUp(req.body);
+    try {
+        const userDto = new UserDto()
+            .setEmailId(req.body.emailId)
+            .setPassword(req.body.password)
+            .setUserName(req.body.userName);
+
+        await signUp(userDto);
         res.status(200)
             .send('success');
     } catch (error) {
