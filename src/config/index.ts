@@ -9,7 +9,7 @@ export default {
     },
     test: {
         type: "sqlite" as const,
-        database: ":memory",
+        database: ":memory:",
         dropSchema: true
     }
 };
