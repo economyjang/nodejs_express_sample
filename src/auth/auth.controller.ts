@@ -1,17 +1,28 @@
 import express, {NextFunction, Request, Response, Router} from "express";
-import {login, signUp} from "./auth.service";
+import {signUp} from "./auth.service";
 import {UserDto} from "./dto/User.dto";
+import passport from "passport";
+import {User} from "./entity/User.entity";
+import {CustomError} from "../common/CustomError";
 
 const authController: Router = express.Router();
 
 authController.post('/login', async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        await login();
-        res.status(200)
-            .send('success');
-    } catch (error) {
-        next(error);
-    }
+    passport.authenticate('local', (error: Error | null, user: User | boolean, info: { message: string } | undefined) => {
+        if (error) {
+            next(error);
+        }
+
+        if(info) {
+            next(new CustomError(409, info.message));
+        }
+
+        if(user) {
+            // JWT token 발급
+            res.status(200)
+                .send('success');
+        }
+    })(req, res, next);
 });
 
 // TODO 로그아웃
