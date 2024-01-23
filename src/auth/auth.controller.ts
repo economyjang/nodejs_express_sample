@@ -1,14 +1,14 @@
 import express, {NextFunction, Request, Response, Router} from "express";
-import {issueJwt, issueRefreshToken, signUp} from "./auth.service";
+import {issueJwt, issueRefreshToken, reissueJwtToken, signUp} from "./auth.service";
 import {UserDto} from "./dto/User.dto";
 import passport from "passport";
-import {User} from "./entity/User.entity";
 import {CustomError} from "../common/CustomError";
+import {isLogin} from "../middleware/auth.middleware";
 
 const authController: Router = express.Router();
 
 authController.post('/login', async (req: Request, res: Response, next: NextFunction) => {
-    passport.authenticate('local', (error: any, user: any, info: { message: string } | undefined) => {
+    passport.authenticate('local', async (error: any, user: any, info: { message: string } | undefined) => {
         if (error) {
             next(error);
         }
@@ -18,8 +18,8 @@ authController.post('/login', async (req: Request, res: Response, next: NextFunc
         }
 
         if(user) {
-            const jwtToken = issueJwt(user.emailId, user.userName);
-            const refreshToken = issueRefreshToken(user.emailId)
+            const jwtToken = await issueJwt(user.emailId, user.userName);
+            const refreshToken = await issueRefreshToken(user.emailId);
 
             res.cookie('jwt_token', jwtToken)
                 .cookie('refresh_token', refreshToken)
@@ -48,12 +48,18 @@ authController.post('/signup', async (req: Request, res: Response, next: NextFun
     }
 });
 
-// TODO JWT 토큰 재발급
-authController.post('/refresh-token', async (req: Request, res: Response, next: NextFunction) => {
+authController.post('/reissue-token', isLogin, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const jwtToken = await reissueJwtToken(req.cookies.refresh_token);
+        res.cookie('jwt_token', jwtToken)
+            .send('success');
+    } catch (error) {
+        next(error);
+    }
 });
 
 // TODO 비밀번호 재설정
-authController.post('/reset', async (req: Request, res: Response, next: NextFunction) => {
+authController.post('/reset', isLogin, async (req: Request, res: Response, next: NextFunction) => {
 });
 
 export default authController;

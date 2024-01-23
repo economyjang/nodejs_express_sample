@@ -28,6 +28,10 @@ export const validateUserPassword = async (emailId: string, password: string, do
     }
 }
 
+export const validateJwtToken = async (jwtToken: string) => {
+    return jwt.verify(jwtToken, secretKey);
+}
+
 export const issueJwt = async (emailId: string, userName: string) => {
     return jwt.sign({emailId, userName}, secretKey, {expiresIn: '1d'});
 };
@@ -37,14 +41,25 @@ export const issueRefreshToken = async (emailId: string) => {
     const user = await userRepository.findOne({where: {emailId}});
 
     if (user) {
-        user.refreshToken = jwt.sign({emailId}, secretKey, {expiresIn: '1m'});
+        user.refreshToken = jwt.sign({emailId}, secretKey, {expiresIn: '30d'});
         const result = await userRepository.save(user);
         return result.refreshToken;
     }
 }
 
-export const reissueRefreshToken = async () => {
+export const reissueJwtToken = async (refreshToken: string) => {
+    try {
+        const jwtPayload = jwt.verify(refreshToken, secretKey) as { emailId: string, iat: number, exp: number };
 
+        const userRepository = AppDataSource.getRepository(User);
+        const user = await userRepository.findOne({where: {emailId: jwtPayload.emailId, refreshToken: refreshToken}});
+        if (user) {
+            return await issueJwt(user.emailId, user.userName);
+        }
+    } catch (error) {
+        console.log(error);
+        throw new CustomError(400, '다시 로그인 필요');
+    }
 }
 
 export const signUp = async (userDto: UserDto) => {

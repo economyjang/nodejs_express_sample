@@ -1,5 +1,5 @@
 import {describe} from '@jest/globals';
-import {issueJwt, issueRefreshToken, signUp, validateUserPassword} from "../src/auth/auth.service";
+import {issueJwt, issueRefreshToken, reissueJwtToken, signUp, validateUserPassword} from "../src/auth/auth.service";
 import {AppDataSource} from "../src/data-source";
 import {User} from "../src/auth/entity/User.entity";
 import {UserDto} from "../src/auth/dto/User.dto";
@@ -16,6 +16,7 @@ beforeAll(async () => {
     user.emailId = 'economyjang777@gmail.com';
     user.password = CryptoJs.AES.encrypt('12341234', secretKey).toString();
     user.userName = 'hello';
+    user.refreshToken = jwt.sign({emailId: 'economyjang777@gmail.com'}, secretKey, {expiresIn: '1m'});
     await userRepository.save(user);
 });
 
@@ -96,5 +97,21 @@ describe('로그인 테스트', () => {
 
         const refreshToken = jwt.sign({emailId}, secretKey, {expiresIn: '1m'});
         await expect(issueRefreshToken(emailId)).resolves.toEqual(refreshToken);
+    });
+
+    test('JWT 토근 재발행 - Secret Key 가 불일치 할 때', async () => {
+        const emailId = 'economyjang777@gmail.com';
+
+        const refreshToken = jwt.sign({emailId}, 'secretKey', {expiresIn: '1m'});
+        await expect(reissueJwtToken(refreshToken)).rejects.toThrow('다시 로그인 필요')
+    });
+
+    test('JWT 토근 재발행 - 정상 프로세스', async () => {
+        const emailId = 'economyjang777@gmail.com';
+        const userName = 'hello';
+
+        const refreshToken = jwt.sign({emailId}, secretKey, {expiresIn: '1m'});
+        const jwtToken = jwt.sign({emailId, userName}, secretKey, {expiresIn: '1d'});
+        await expect(reissueJwtToken(refreshToken)).resolves.toEqual(jwtToken);
     });
 });

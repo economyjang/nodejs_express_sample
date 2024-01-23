@@ -1,10 +1,11 @@
 import express, {Express, NextFunction, Request, Response} from 'express';
 import authController from './src/auth/auth.controller';
 import postController from './src/post/post.controller'
-import {AppDataSource} from "./src/data-source";
 import Passport from "./src/passport"
 import passport from "passport";
+import {AppDataSource} from "./src/data-source";
 import {CustomError} from "./src/common/CustomError";
+import cookieParser from 'cookie-parser';
 
 const app: Express = express();
 // TODO configuration 에 넣기
@@ -25,6 +26,7 @@ AppDataSource.initialize()
     .catch((error) => console.log(error));
 
 app.use(express.json());
+app.use(cookieParser());
 
 // 컨트롤러 라우팅
 app.use('/auth', authController);
