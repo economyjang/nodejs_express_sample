@@ -57,12 +57,22 @@ describe('회원가입 테스트', () => {
 describe('로그인 테스트', () => {
     const mockCallback = jest.fn();
 
+    test('정상 로그인', async () => {
+        const emailId = 'economyjang777@gmail.com';
+        const password = '12341234'
+
+        const userRepository = AppDataSource.getRepository(User);
+        const user = await userRepository.findOne({where: {emailId}});
+        await validateUserPassword(emailId, password, mockCallback);
+        expect(mockCallback).toHaveBeenCalledWith(null, user);
+    });
+
     test('존재하지 않은 사용자 일 때', async () => {
         const emailId = 'economyjang123@gmail.com';
         const password = '11111122222';
 
         await validateUserPassword(emailId, password, mockCallback);
-        expect(mockCallback).toHaveBeenCalledWith(null, false, { message : '존재하지 않는 사용자 입니다.'})
+        expect(mockCallback).toHaveBeenCalledWith(null, false, {message: '존재하지 않는 사용자 입니다.'})
     });
 
     test('패스워드가 일치하지 않을 때', async () => {
@@ -70,7 +80,7 @@ describe('로그인 테스트', () => {
         const password = '11111122222';
 
         await validateUserPassword(emailId, password, mockCallback);
-        expect(mockCallback).toHaveBeenCalledWith(null, false, { message : '패스워드가 일치하지 않습니다.'});
+        expect(mockCallback).toHaveBeenCalledWith(null, false, {message: '패스워드가 일치하지 않습니다.'});
     });
 
     test('JWT 토근 발행', async () => {

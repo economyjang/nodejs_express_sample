@@ -17,7 +17,7 @@ export const validateUserPassword = async (emailId: string, password: string, do
             return done(null, false, {message: '존재하지 않는 사용자 입니다.'});
         }
 
-        if (CryptoJS.AES.decrypt(user.password, secretKey).toString() !== password) {
+        if (CryptoJS.AES.decrypt(user.password, secretKey).toString(CryptoJS.enc.Utf8) !== password) {
             return done(null, false, {message: '패스워드가 일치하지 않습니다.'});
         }
 
