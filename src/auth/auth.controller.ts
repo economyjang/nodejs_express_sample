@@ -1,5 +1,5 @@
 import express, {NextFunction, Request, Response, Router} from "express";
-import {signUp} from "./auth.service";
+import {issueJwt, issueRefreshToken, signUp} from "./auth.service";
 import {UserDto} from "./dto/User.dto";
 import passport from "passport";
 import {User} from "./entity/User.entity";
@@ -8,7 +8,7 @@ import {CustomError} from "../common/CustomError";
 const authController: Router = express.Router();
 
 authController.post('/login', async (req: Request, res: Response, next: NextFunction) => {
-    passport.authenticate('local', (error: Error | null, user: User | boolean, info: { message: string } | undefined) => {
+    passport.authenticate('local', (error: any, user: any, info: { message: string } | undefined) => {
         if (error) {
             next(error);
         }
@@ -18,8 +18,12 @@ authController.post('/login', async (req: Request, res: Response, next: NextFunc
         }
 
         if(user) {
-            // JWT token 발급
-            res.status(200)
+            const jwtToken = issueJwt(user.emailId, user.userName);
+            const refreshToken = issueRefreshToken(user.emailId)
+
+            res.cookie('jwt_token', jwtToken)
+                .cookie('refresh_token', refreshToken)
+                .status(200)
                 .send('success');
         }
     })(req, res, next);

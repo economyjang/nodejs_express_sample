@@ -1,9 +1,10 @@
 import {describe} from '@jest/globals';
-import {signUp, validateUserPassword} from "../src/auth/auth.service";
+import {issueJwt, issueRefreshToken, signUp, validateUserPassword} from "../src/auth/auth.service";
 import {AppDataSource} from "../src/data-source";
 import {User} from "../src/auth/entity/User.entity";
 import {UserDto} from "../src/auth/dto/User.dto";
 import CryptoJs from "crypto-js";
+import jwt from "jsonwebtoken";
 
 const secretKey = 'nodejs-express-practice';
 
@@ -70,5 +71,20 @@ describe('로그인 테스트', () => {
 
         await validateUserPassword(emailId, password, mockCallback);
         expect(mockCallback).toHaveBeenCalledWith(null, false, { message : '패스워드가 일치하지 않습니다.'});
+    });
+
+    test('JWT 토근 발행', async () => {
+        const emailId = 'economyjang777@gmail.com';
+        const userName = 'jang';
+
+        const jwtToken = jwt.sign({emailId, userName}, secretKey, {expiresIn: '1d'});
+        await expect(issueJwt(emailId, userName)).resolves.toEqual(jwtToken);
+    });
+
+    test('Refresh 토큰 발행 및 DB 저장', async () => {
+        const emailId = 'economyjang777@gmail.com';
+
+        const refreshToken = jwt.sign({emailId}, secretKey, {expiresIn: '1m'});
+        await expect(issueRefreshToken(emailId)).resolves.toEqual(refreshToken);
     });
 });

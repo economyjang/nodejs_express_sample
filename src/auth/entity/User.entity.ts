@@ -1,5 +1,5 @@
 import {Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn} from "typeorm";
-import {IsEmail, IsNotEmpty, Length} from "class-validator";
+import {IsEmail, IsEmpty, IsNotEmpty, Length} from "class-validator";
 
 @Entity()
 export class User {
@@ -20,6 +20,9 @@ export class User {
     @IsNotEmpty()
     @Length(1, 10)
     userName!: string
+
+    @Column({nullable: true})
+    refreshToken!: string
 
     @CreateDateColumn()
     createdAt!: Date

@@ -1,5 +1,3 @@
-import passport from 'passport';
-import {Strategy as JwtStrategy, ExtractJwt} from 'passport-jwt';
 import jwt from 'jsonwebtoken';
 import {validate} from "class-validator";
 import {AppDataSource} from "../data-source";
@@ -30,16 +28,24 @@ export const validateUserPassword = async (emailId: string, password: string, do
     }
 }
 
-// Passport-jwt 설정
-// const opts = {
-//     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-//     secretOrKey: secretKey
-// };
-//
-// passport.use(new JwtStrategy(opts, (jwt_payload, done) => {
-//     // JWT 페이로드를 기반으로 사용자 검증
-//     // 예: User.findById(jwt_payload.id)
-// }));
+export const issueJwt = async (emailId: string, userName: string) => {
+    return jwt.sign({emailId, userName}, secretKey, {expiresIn: '1d'});
+};
+
+export const issueRefreshToken = async (emailId: string) => {
+    const userRepository = AppDataSource.getRepository(User);
+    const user = await userRepository.findOne({where: {emailId}});
+
+    if (user) {
+        user.refreshToken = jwt.sign({emailId}, secretKey, {expiresIn: '1m'});
+        const result = await userRepository.save(user);
+        return result.refreshToken;
+    }
+}
+
+export const reissueRefreshToken = async () => {
+
+}
 
 export const signUp = async (userDto: UserDto) => {
     // 사용자 아이디, 패스워드, 사용자 이름
