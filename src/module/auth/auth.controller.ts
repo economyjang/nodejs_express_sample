@@ -1,9 +1,9 @@
+import passport from "passport";
 import express, {NextFunction, Request, Response, Router} from "express";
 import {issueJwt, issueRefreshToken, reissueJwtToken, signUp} from "./auth.service";
 import {UserDto} from "./dto/User.dto";
-import passport from "passport";
-import {CustomError} from "../common/CustomError";
-import {isLogin} from "../middleware/auth.middleware";
+import {CustomError} from "../../common/CustomError";
+import {isLogin} from "../../middleware/auth.middleware";
 
 const authController: Router = express.Router();
 

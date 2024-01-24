@@ -1,7 +1,7 @@
 import "reflect-metadata"
 import {DataSource} from "typeorm"
-import {Post} from "../post/entity/Post.entity";
-import {User} from "../auth/entity/User.entity";
+import {Post} from "../module/post/entity/Post.entity";
+import {User} from "../module/auth/entity/User.entity";
 import configObj from "../config"
 
 const env = process.env.NODE_ENV as 'test' || 'development';

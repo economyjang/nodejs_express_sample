@@ -1,5 +1,5 @@
 import {NextFunction, Request, RequestHandler, Response} from "express";
-import {validateJwtToken} from "../auth/auth.service";
+import {validateJwtToken} from "../module/auth/auth.service";
 
 export const isLogin: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {

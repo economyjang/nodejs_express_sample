@@ -1,8 +1,8 @@
 import {describe} from '@jest/globals';
-import {issueJwt, issueRefreshToken, reissueJwtToken, signUp, validateUserPassword} from "../src/auth/auth.service";
-import {AppDataSource} from "../src/data-source";
-import {User} from "../src/auth/entity/User.entity";
-import {UserDto} from "../src/auth/dto/User.dto";
+import {issueJwt, issueRefreshToken, reissueJwtToken, signUp, validateUserPassword} from "../../src/module/auth/auth.service";
+import {AppDataSource} from "../../src/data-source";
+import {User} from "../../src/module/auth/entity/User.entity";
+import {UserDto} from "../../src/module/auth/dto/User.dto";
 import CryptoJs from "crypto-js";
 import jwt from "jsonwebtoken";
 
@@ -37,7 +37,6 @@ describe('회원가입 테스트', () => {
         await expect(signUp(userDto)).rejects.toThrow('비밀번호 형식이 잘못되었습니다.');
     });
 
-    // 이메일 형식부터 검증
     test('사용자 이메일, 패스워드 형식 오류', async () => {
         const userDto = new UserDto()
             .setEmailId('economyjang777#gmail.com')
@@ -95,14 +94,14 @@ describe('로그인 테스트', () => {
     test('Refresh 토큰 발행 및 DB 저장', async () => {
         const emailId = 'economyjang777@gmail.com';
 
-        const refreshToken = jwt.sign({emailId}, secretKey, {expiresIn: '1m'});
+        const refreshToken = jwt.sign({emailId}, secretKey, {expiresIn: '30d'});
         await expect(issueRefreshToken(emailId)).resolves.toEqual(refreshToken);
     });
 
     test('JWT 토근 재발행 - Secret Key 가 불일치 할 때', async () => {
         const emailId = 'economyjang777@gmail.com';
 
-        const refreshToken = jwt.sign({emailId}, 'secretKey', {expiresIn: '1m'});
+        const refreshToken = jwt.sign({emailId}, 'secretKey', {expiresIn: '30d'});
         await expect(reissueJwtToken(refreshToken)).rejects.toThrow('다시 로그인 필요')
     });
 
@@ -110,7 +109,7 @@ describe('로그인 테스트', () => {
         const emailId = 'economyjang777@gmail.com';
         const userName = 'hello';
 
-        const refreshToken = jwt.sign({emailId}, secretKey, {expiresIn: '1m'});
+        const refreshToken = jwt.sign({emailId}, secretKey, {expiresIn: '30d'});
         const jwtToken = jwt.sign({emailId, userName}, secretKey, {expiresIn: '1d'});
         await expect(reissueJwtToken(refreshToken)).resolves.toEqual(jwtToken);
     });

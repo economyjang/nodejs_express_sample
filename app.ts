@@ -1,6 +1,6 @@
 import express, {Express, NextFunction, Request, Response} from 'express';
-import authController from './src/auth/auth.controller';
-import postController from './src/post/post.controller'
+import authController from './src/module/auth/auth.controller';
+import postController from './src/module/post/post.controller'
 import Passport from "./src/passport"
 import passport from "passport";
 import {AppDataSource} from "./src/data-source";

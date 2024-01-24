@@ -1,10 +1,10 @@
 import jwt from 'jsonwebtoken';
 import {validate} from "class-validator";
-import {AppDataSource} from "../data-source";
+import {AppDataSource} from "../../data-source";
 import {User} from "./entity/User.entity";
 import CryptoJS from 'crypto-js';
 import {UserDto} from "./dto/User.dto";
-import {CustomError} from "../common/CustomError";
+import {CustomError} from "../../common/CustomError";
 
 const secretKey = 'nodejs-express-practice';
 
@@ -57,7 +57,6 @@ export const reissueJwtToken = async (refreshToken: string) => {
             return await issueJwt(user.emailId, user.userName);
         }
     } catch (error) {
-        console.log(error);
         throw new CustomError(400, '다시 로그인 필요');
     }
 }
