@@ -5,6 +5,7 @@ import {User} from "./entity/User.entity";
 import CryptoJS from 'crypto-js';
 import {UserDto} from "./dto/User.dto";
 import {CustomError} from "../../common/CustomError";
+import {ResetPwdDto} from "./dto/ResetPwd.dto";
 
 const secretKey = 'nodejs-express-practice';
 
@@ -93,5 +94,29 @@ export const signUp = async (userDto: UserDto) => {
     // 비밀번호 암호화
     user.password = CryptoJS.AES.encrypt(userDto.getPassword(), secretKey).toString();
 
+    await userRepository.save(user);
+}
+
+export const resetPassword = async (resetPasswordDto: ResetPwdDto) => {
+    // 사용자가 입력한 데이터 형식 검증
+    const formValidation = await validate(resetPasswordDto);
+    if (formValidation.length > 0) {
+        const passwordValidation = formValidation.find((value) => value.property === 'newPassword');
+        if (passwordValidation && passwordValidation.constraints) {
+            if('isLength' in passwordValidation.constraints) {
+                throw new CustomError(409, '신규 비밀번호 길이는 5 ~ 20자 입니다.');
+            }
+        }
+    }
+
+    const userRepository = AppDataSource.getRepository(User);
+    const user = await userRepository.findOne({where: {emailId: resetPasswordDto.getEmailId()}});
+
+    if(!user) throw new CustomError(401, '존재하지 않는 사용자 입니다.');
+    if(CryptoJS.AES.decrypt(user.password, secretKey).toString(CryptoJS.enc.Utf8) !== resetPasswordDto.getPassword()){
+        throw new CustomError(401, '패스워드가 일치하지 않습니다.');
+    }
+
+    user.password = resetPasswordDto.getNewPassword();
     await userRepository.save(user);
 }

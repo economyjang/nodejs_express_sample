@@ -1,9 +1,10 @@
 import passport from "passport";
 import express, {NextFunction, Request, Response, Router} from "express";
-import {issueJwt, issueRefreshToken, reissueJwtToken, signUp} from "./auth.service";
+import {issueJwt, issueRefreshToken, reissueJwtToken, resetPassword, signUp} from "./auth.service";
 import {UserDto} from "./dto/User.dto";
 import {CustomError} from "../../common/CustomError";
 import {isLogin} from "../../middleware/auth.middleware";
+import {ResetPwdDto} from "./dto/ResetPwd.dto";
 
 const authController: Router = express.Router();
 
@@ -13,11 +14,11 @@ authController.post('/login', async (req: Request, res: Response, next: NextFunc
             next(error);
         }
 
-        if(info) {
+        if (info) {
             next(new CustomError(409, info.message));
         }
 
-        if(user) {
+        if (user) {
             const jwtToken = await issueJwt(user.emailId, user.userName);
             const refreshToken = await issueRefreshToken(user.emailId);
 
@@ -58,8 +59,19 @@ authController.post('/reissue-token', isLogin, async (req: Request, res: Respons
     }
 });
 
-// TODO 비밀번호 재설정
 authController.post('/reset', isLogin, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const resetPwdDto = new ResetPwdDto()
+            .setEmailId(req.body.emailId)
+            .setPassword(req.body.password)
+            .setNewPassword(req.body.newPassword);
+        await resetPassword(resetPwdDto);
+
+        res.status(200)
+            .send('success');
+    } catch (error) {
+        next(error);
+    }
 });
 
 export default authController;

@@ -1,10 +1,18 @@
 import {describe} from '@jest/globals';
-import {issueJwt, issueRefreshToken, reissueJwtToken, signUp, validateUserPassword} from "../../src/module/auth/auth.service";
+import {
+    issueJwt,
+    issueRefreshToken,
+    reissueJwtToken,
+    resetPassword,
+    signUp,
+    validateUserPassword
+} from "../../src/module/auth/auth.service";
 import {AppDataSource} from "../../src/data-source";
 import {User} from "../../src/module/auth/entity/User.entity";
 import {UserDto} from "../../src/module/auth/dto/User.dto";
 import CryptoJs from "crypto-js";
 import jwt from "jsonwebtoken";
+import {ResetPwdDto} from "../../src/module/auth/dto/ResetPwd.dto";
 
 const secretKey = 'nodejs-express-practice';
 
@@ -112,5 +120,29 @@ describe('로그인 테스트', () => {
         const refreshToken = jwt.sign({emailId}, secretKey, {expiresIn: '30d'});
         const jwtToken = jwt.sign({emailId, userName}, secretKey, {expiresIn: '1d'});
         await expect(reissueJwtToken(refreshToken)).resolves.toEqual(jwtToken);
+    });
+});
+
+describe('패스워드 변경 테스트', () => {
+    describe('신규 비밀번호 형식 테스트', () => {
+        const resetPwdDto = new ResetPwdDto()
+            .setEmailId('kyungjaejang777@gmail.com')
+            .setPassword('12341234')
+
+        test('신규 비밀번호 형식이 잘못되었을 때 - 공백일 때', async () => {
+            await expect(resetPassword(resetPwdDto)).rejects.toThrow('신규 비밀번호 길이는 5 ~ 20자 입니다.');
+        });
+
+        test('신규 비밀번호 형식이 잘못되었을 때 - 길이가 짧을 때(5, 20)', async () => {
+            resetPwdDto.setNewPassword('12');
+
+            await expect(resetPassword(resetPwdDto)).rejects.toThrow('신규 비밀번호 길이는 5 ~ 20자 입니다.');
+        });
+
+        test('신규 비밀번호 형식이 잘못되었을 때 - 길이가 길 때(5, 20)', async () => {
+            resetPwdDto.setNewPassword('12341234123412341234123412341234');
+
+            await expect(resetPassword(resetPwdDto)).rejects.toThrow('신규 비밀번호 길이는 5 ~ 20자 입니다.');
+        });
     });
 });

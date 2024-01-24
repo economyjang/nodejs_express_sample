@@ -6,12 +6,13 @@ import passport from "passport";
 import {AppDataSource} from "./src/data-source";
 import {CustomError} from "./src/common/CustomError";
 import cookieParser from 'cookie-parser';
+import morgan from 'morgan';
 
 const app: Express = express();
-// TODO configuration 에 넣기
 const port = 5100;
 
-// TODO morgan 미들웨어 적용
+// morgan
+app.use(morgan('dev'));
 
 // Passport
 Passport();
