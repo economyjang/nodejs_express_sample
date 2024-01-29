@@ -1,5 +1,14 @@
-import {Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn} from "typeorm";
+import {
+    Column,
+    CreateDateColumn,
+    DeleteDateColumn,
+    Entity,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn
+} from "typeorm";
 import {IsEmail, IsEmpty, IsNotEmpty, Length} from "class-validator";
+import {LoginHistory} from "./LoginHistory.entity";
 
 @Entity()
 export class User {
@@ -21,8 +30,8 @@ export class User {
     @Length(1, 10)
     userName!: string
 
-    @Column({nullable: true})
-    refreshToken!: string
+    @OneToMany(() => LoginHistory, (loginHistory) => loginHistory.user)
+    loginHistory!: LoginHistory[]
 
     @CreateDateColumn()
     createdAt!: Date

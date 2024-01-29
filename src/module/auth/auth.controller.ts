@@ -22,7 +22,7 @@ authController.post('/login', async (req: Request, res: Response, next: NextFunc
             const jwtToken = await issueJwt(user.emailId, user.userName);
             const refreshToken = await issueRefreshToken(user.emailId);
 
-            res.cookie('jwt_token', jwtToken)
+            res.cookie('access_token', jwtToken)
                 .cookie('refresh_token', refreshToken)
                 .status(200)
                 .send('success');
@@ -32,6 +32,7 @@ authController.post('/login', async (req: Request, res: Response, next: NextFunc
 
 // TODO 로그아웃
 authController.post('/logout', async (req: Request, res: Response, next: NextFunction) => {
+
 });
 
 authController.post('/signup', async (req: Request, res: Response, next: NextFunction) => {

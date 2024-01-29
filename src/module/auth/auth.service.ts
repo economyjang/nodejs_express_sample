@@ -6,6 +6,7 @@ import CryptoJS from 'crypto-js';
 import {UserDto} from "./dto/User.dto";
 import {CustomError} from "../../common/CustomError";
 import {ResetPwdDto} from "./dto/ResetPwd.dto";
+import {LoginHistory} from "./entity/LoginHistory.entity";
 
 const secretKey = 'nodejs-express-practice';
 
@@ -39,25 +40,47 @@ export const issueJwt = async (emailId: string, userName: string) => {
 
 export const issueRefreshToken = async (emailId: string) => {
     const userRepository = AppDataSource.getRepository(User);
-    const user = await userRepository.findOne({where: {emailId}});
+    const user = await userRepository.findOne({
+        where: {emailId},
+        relations: {
+            loginHistory: true,
+        }
+    });
 
     if (user) {
-        user.refreshToken = jwt.sign({emailId}, secretKey, {expiresIn: '30d'});
-        const result = await userRepository.save(user);
-        return result.refreshToken;
+        const refreshToken = jwt.sign({emailId}, secretKey, {expiresIn: '30d'});
+
+        const loginHistoryRepository = AppDataSource.getRepository(LoginHistory);
+        const loginHistory = new LoginHistory();
+        loginHistory.refreshToken = refreshToken;
+        await loginHistoryRepository.save(loginHistory);
+
+        user.loginHistory = [loginHistory];
+        await userRepository.save(user);
+
+        return refreshToken;
     }
 }
 
 export const reissueJwtToken = async (refreshToken: string) => {
     try {
+        // refreshToken 검증
         const jwtPayload = jwt.verify(refreshToken, secretKey) as { emailId: string, iat: number, exp: number };
 
         const userRepository = AppDataSource.getRepository(User);
-        const user = await userRepository.findOne({where: {emailId: jwtPayload.emailId, refreshToken: refreshToken}});
-        if (user) {
+        const user = await userRepository.findOne({where: {emailId: jwtPayload.emailId}});
+
+        const loginHistoryRepository = AppDataSource.getRepository(LoginHistory);
+        const loginHistory = await loginHistoryRepository.findOne({where: {refreshToken}});
+
+        if (user && loginHistory) {
             return await issueJwt(user.emailId, user.userName);
+        } else {
+            // refreshToken 검증
+            throw new Error('No Exist RefreshToken');
         }
     } catch (error) {
+        console.log(error);
         throw new CustomError(400, '다시 로그인 필요');
     }
 }
@@ -103,7 +126,7 @@ export const resetPassword = async (resetPasswordDto: ResetPwdDto) => {
     if (formValidation.length > 0) {
         const passwordValidation = formValidation.find((value) => value.property === 'newPassword');
         if (passwordValidation && passwordValidation.constraints) {
-            if('isLength' in passwordValidation.constraints) {
+            if ('isLength' in passwordValidation.constraints) {
                 throw new CustomError(409, '신규 비밀번호 길이는 5 ~ 20자 입니다.');
             }
         }
@@ -112,11 +135,15 @@ export const resetPassword = async (resetPasswordDto: ResetPwdDto) => {
     const userRepository = AppDataSource.getRepository(User);
     const user = await userRepository.findOne({where: {emailId: resetPasswordDto.getEmailId()}});
 
-    if(!user) throw new CustomError(401, '존재하지 않는 사용자 입니다.');
-    if(CryptoJS.AES.decrypt(user.password, secretKey).toString(CryptoJS.enc.Utf8) !== resetPasswordDto.getPassword()){
+    if (!user) throw new CustomError(401, '존재하지 않는 사용자 입니다.');
+    if (CryptoJS.AES.decrypt(user.password, secretKey).toString(CryptoJS.enc.Utf8) !== resetPasswordDto.getPassword()) {
         throw new CustomError(401, '패스워드가 일치하지 않습니다.');
     }
 
     user.password = resetPasswordDto.getNewPassword();
     await userRepository.save(user);
+}
+
+export const logout = async () => {
+
 }

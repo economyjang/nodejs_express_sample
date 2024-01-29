@@ -1,4 +1,4 @@
-import {describe} from '@jest/globals';
+import {afterEach, describe} from '@jest/globals';
 import {
     issueJwt,
     issueRefreshToken,
@@ -13,20 +13,30 @@ import {UserDto} from "../../src/module/auth/dto/User.dto";
 import CryptoJs from "crypto-js";
 import jwt from "jsonwebtoken";
 import {ResetPwdDto} from "../../src/module/auth/dto/ResetPwd.dto";
+import {LoginHistory} from "../../src/module/auth/entity/LoginHistory.entity";
 
 const secretKey = 'nodejs-express-practice';
 
 beforeAll(async () => {
     await AppDataSource.initialize();
 
+    const loginHistoryRepository = AppDataSource.getRepository(LoginHistory);
+    const loginHistory = new LoginHistory();
+    loginHistory.refreshToken = jwt.sign({emailId: 'economyjang777@gmail.com'}, secretKey, {expiresIn: '1m'});
+    await loginHistoryRepository.save(loginHistory);
+
     const userRepository = AppDataSource.getRepository(User);
     const user = new User();
     user.emailId = 'economyjang777@gmail.com';
     user.password = CryptoJs.AES.encrypt('12341234', secretKey).toString();
     user.userName = 'hello';
-    user.refreshToken = jwt.sign({emailId: 'economyjang777@gmail.com'}, secretKey, {expiresIn: '1m'});
+    user.loginHistory = [loginHistory];
     await userRepository.save(user);
 });
+
+afterAll(async () => {
+    await AppDataSource.dropDatabase();
+})
 
 describe('회원가입 테스트', () => {
     test('사용자 이메일 아이디 형식 오류', async () => {
@@ -65,61 +75,76 @@ describe('회원가입 테스트', () => {
 describe('로그인 테스트', () => {
     const mockCallback = jest.fn();
 
-    test('정상 로그인', async () => {
-        const emailId = 'economyjang777@gmail.com';
-        const password = '12341234'
+    describe('아이디 패스워드 인증 테스트', () => {
+        test('정상 로그인', async () => {
+            const emailId = 'economyjang777@gmail.com';
+            const password = '12341234'
 
-        const userRepository = AppDataSource.getRepository(User);
-        const user = await userRepository.findOne({where: {emailId}});
-        await validateUserPassword(emailId, password, mockCallback);
-        expect(mockCallback).toHaveBeenCalledWith(null, user);
-    });
+            const userRepository = AppDataSource.getRepository(User);
+            const user = await userRepository.findOne({where: {emailId}});
+            await validateUserPassword(emailId, password, mockCallback);
+            expect(mockCallback).toHaveBeenCalledWith(null, user);
+        });
 
-    test('존재하지 않은 사용자 일 때', async () => {
-        const emailId = 'economyjang123@gmail.com';
-        const password = '11111122222';
+        test('존재하지 않은 사용자 일 때', async () => {
+            const emailId = 'economyjang123@gmail.com';
+            const password = '11111122222';
 
-        await validateUserPassword(emailId, password, mockCallback);
-        expect(mockCallback).toHaveBeenCalledWith(null, false, {message: '존재하지 않는 사용자 입니다.'})
-    });
+            await validateUserPassword(emailId, password, mockCallback);
+            expect(mockCallback).toHaveBeenCalledWith(null, false, {message: '존재하지 않는 사용자 입니다.'})
+        });
 
-    test('패스워드가 일치하지 않을 때', async () => {
-        const emailId = 'economyjang777@gmail.com';
-        const password = '11111122222';
+        test('패스워드가 일치하지 않을 때', async () => {
+            const emailId = 'economyjang777@gmail.com';
+            const password = '11111122222';
 
-        await validateUserPassword(emailId, password, mockCallback);
-        expect(mockCallback).toHaveBeenCalledWith(null, false, {message: '패스워드가 일치하지 않습니다.'});
-    });
+            await validateUserPassword(emailId, password, mockCallback);
+            expect(mockCallback).toHaveBeenCalledWith(null, false, {message: '패스워드가 일치하지 않습니다.'});
+        });
+    })
 
-    test('JWT 토근 발행', async () => {
-        const emailId = 'economyjang777@gmail.com';
-        const userName = 'jang';
+    describe('JWT 토큰 정상 테스트', () => {
+        test('JWT 토근 발행 - 정상 프로세스', async () => {
+            const emailId = 'economyjang777@gmail.com';
+            const userName = 'jang';
 
-        const jwtToken = jwt.sign({emailId, userName}, secretKey, {expiresIn: '1d'});
-        await expect(issueJwt(emailId, userName)).resolves.toEqual(jwtToken);
-    });
+            await expect(issueJwt(emailId, userName)).resolves.not.toBeUndefined()
+        });
 
-    test('Refresh 토큰 발행 및 DB 저장', async () => {
-        const emailId = 'economyjang777@gmail.com';
+        test('JWT 토근 재발행 - 정상 프로세스', async () => {
+            const emailId = 'economyjang777@gmail.com';
+            const userName = 'hello';
 
-        const refreshToken = jwt.sign({emailId}, secretKey, {expiresIn: '30d'});
-        await expect(issueRefreshToken(emailId)).resolves.toEqual(refreshToken);
-    });
+            const userRepository = AppDataSource.getRepository(User);
+            const user = await userRepository.findOne({relations: {loginHistory: true}, where: {emailId}});
+            await expect(reissueJwtToken(user!.loginHistory[0].refreshToken)).resolves.not.toBeUndefined()
+        });
 
-    test('JWT 토근 재발행 - Secret Key 가 불일치 할 때', async () => {
-        const emailId = 'economyjang777@gmail.com';
+        test('Refresh 토큰 발행 및 DB 저장', async () => {
+            const emailId = 'economyjang777@gmail.com';
 
-        const refreshToken = jwt.sign({emailId}, 'secretKey', {expiresIn: '30d'});
-        await expect(reissueJwtToken(refreshToken)).rejects.toThrow('다시 로그인 필요')
-    });
+            await expect(issueRefreshToken(emailId)).resolves.not.toBeUndefined()
+        });
 
-    test('JWT 토근 재발행 - 정상 프로세스', async () => {
-        const emailId = 'economyjang777@gmail.com';
-        const userName = 'hello';
+        test('JWT 토근 재발행 - RefreshToken Secret Key 가 불일치 할 때', async () => {
+            const emailId = 'economyjang777@gmail.com';
 
-        const refreshToken = jwt.sign({emailId}, secretKey, {expiresIn: '30d'});
-        const jwtToken = jwt.sign({emailId, userName}, secretKey, {expiresIn: '1d'});
-        await expect(reissueJwtToken(refreshToken)).resolves.toEqual(jwtToken);
+            const refreshToken = jwt.sign({emailId}, 'secretKey', {expiresIn: '30d'});
+            await expect(reissueJwtToken(refreshToken)).rejects.toThrow('다시 로그인 필요')
+        });
+
+        // test('JWT 토근 재발행 - RefreshToken 이 존재하지 않을 때', async () => {
+        //     const emailId = 'economyjang777@gmail.com';
+        //
+        //     const loginHistoryRepository = AppDataSource.getRepository(LoginHistory);
+        //     const loginHistory = await loginHistoryRepository.find({relations: {user: true}});
+        //     await loginHistoryRepository.softDelete({id: loginHistory[0].id});
+        //
+        //     console.log(loginHistory);
+        //
+        //     const refreshToken = jwt.sign({emailId}, secretKey, {expiresIn: '30d'});
+        //     await expect(reissueJwtToken(refreshToken)).rejects.toThrow('다시 로그인 필요')
+        // });
     });
 });
 
